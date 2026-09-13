@@ -1,0 +1,5 @@
+function abs(v){try{return v?new URL(v,location.href).href:''}catch{return''}}
+function scan(){const out=[],seen=new Set();for(const el of document.querySelectorAll('video,audio')){for(const raw of [el.currentSrc,el.src,...Array.from(el.querySelectorAll('source')).map(s=>s.src)]){const url=abs(raw);if(!url||url.startsWith('blob:')||seen.has(url))continue;seen.add(url);out.push({url,type:'media',kind:'MEDIA',width:el.videoWidth||0,height:el.videoHeight||0,duration:Number.isFinite(el.duration)?el.duration:0});}}return out}
+chrome.runtime.onMessage.addListener((m,s,r)=>{if(m.action==='scanVideoElements')r({items:scan()})});
+function report(el){const url=abs(el.currentSrc||el.src);if(url&&!url.startsWith('blob:'))chrome.runtime.sendMessage({action:'domCandidate',item:{url,type:'media',kind:'MEDIA',width:el.videoWidth||0,height:el.videoHeight||0,duration:Number.isFinite(el.duration)?el.duration:0}}).catch(()=>{})}
+for(const ev of ['play','loadedmetadata','canplay'])document.addEventListener(ev,e=>{if(e.target instanceof HTMLMediaElement)report(e.target)},true);

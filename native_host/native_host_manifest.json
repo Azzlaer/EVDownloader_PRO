@@ -1,0 +1,9 @@
+{
+  "name": "com.azzlaer.videomkvhost",
+  "description": "Video MKV Downloader Native Host",
+  "path": "D:\\MyProjects\\VideoMKV_Downloader_v3\\native_host\\native_host.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://hkopdlcndpmgkgicneojboaabahnomeb/"
+  ]
+}

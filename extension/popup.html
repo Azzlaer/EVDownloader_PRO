@@ -1,0 +1,19 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Video MKV PRO</title><link rel="stylesheet" href="popup.css"></head><body>
+<header><div class="brand"><div class="logo">▶</div><div><h1>Video MKV PRO</h1><p>Chrome Media Detector · FFmpeg</p></div></div><button id="settings" class="icon">⚙️</button></header>
+<div class="hostline"><span id="hostDot" class="dot wait"></span><span id="hostText">Comprobando motor…</span><button id="refreshHost" class="link">↻</button></div>
+<nav><button class="tab active" data-tab="detect">🎬 Detector</button><button class="tab" data-tab="queue">📥 Cola <span id="queueCount" class="pill">0</span></button></nav>
+<section id="detect" class="panel active">
+ <div id="pageTitle" class="page-title"></div><div class="toolbar"><button id="detectBtn" class="primary">🔍 Detectar</button><button id="clearBtn">🧹</button></div>
+ <div class="bulkbar"><button id="downloadAllBtn" class="bulk">📦 Descargar todos los videos detectados</button><div id="bulkFolder" class="bulk-folder">Carpeta: se solicitará al iniciar</div></div>
+ <div id="sources" class="sources"><div class="empty">Reproduce un video y pulsa <b>Detectar</b>.</div></div>
+ <div class="card">
+  <div class="grid2"><label>Acción<select id="mode"><option value="auto">🤖 Automático: remux y fallback H.264</option><option value="copy">⚡ Remux a MKV (sin pérdida)</option><option value="h264">🎞 H.264 + AAC</option><option value="hevc">🗜 H.265 + AAC</option><option value="audio_mp3">🎵 Extraer MP3</option><option value="audio_flac">🎼 Extraer FLAC</option></select></label><label>Variante / calidad<select id="variant"><option value="">Automática / original</option></select></label></div>
+  <label>Nombre de archivo<input id="filename" placeholder="video.mkv"></label>
+  <div class="grid2"><label>Audio<select id="audioTrack"><option value="all">Todos</option></select></label><label>Subtítulos<select id="subtitleTrack"><option value="all">Todos</option><option value="none">Ninguno</option></select></label></div>
+  <div class="grid2"><label>Grabación LIVE (min)<input id="liveMinutes" type="number" min="0" value="0" placeholder="0 = hasta cancelar"></label><label class="check"><input id="useSession" type="checkbox" checked> Usar cookies/sesión de Chrome</label></div>
+  <div id="mediaInfo" class="media-info">Selecciona una fuente. HLS/DASH puede mostrar variantes.</div>
+  <div class="buttons"><button id="analyzeBtn">📊 Analizar</button><button id="inspectBtn">📺 Calidades</button><button id="previewBtn">▶ Vista previa</button><button id="downloadBtn" class="primary wide">⬇ Iniciar</button></div>
+ </div>
+</section>
+<section id="queue" class="panel"><div class="queue-head"><b>Descargas / conversiones</b><button id="clearFinished" class="link">Limpiar finalizados</button><button id="reloadJobs" class="link">Actualizar</button></div><div id="jobs" class="jobs"><div class="empty">No hay trabajos todavía.</div></div></section>
+<footer><span id="status">Sin cuotas artificiales · DRM no soportado.</span></footer><script src="popup.js"></script></body></html>
