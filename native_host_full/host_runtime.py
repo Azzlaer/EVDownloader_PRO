@@ -59,9 +59,18 @@ def okexe(p):
 
 def out_dir():return Path(expand(CFG.get('OUTPUT','directory',fallback=str(Path.home()/'Videos'/'MKV'))))
 def clean_name(n):
-    n=os.path.basename(n or 'video.mkv');n=re.sub(r'[<>:"/\\|?*\x00-\x1F]','_',n).strip(' .')
-    if not re.search(r'\.(mkv|mp3|flac)$',n,re.I):n+='.mkv'
-    return n[:180] or 'video.mkv'
+    # Handle Windows paths even when tests or tooling run on another OS.
+    n=re.split(r'[/\\]',str(n or 'video.mkv'))[-1]
+    n=re.sub(r'[<>:"/\\|?*\x00-\x1F]','_',n).strip(' .')
+    if not n:n='video'
+    match=re.search(r'\.(mkv|mp3|flac)$',n,re.I)
+    suffix=match.group(0) if match else '.mkv'
+    stem=n[:-len(suffix)] if match else n
+    stem=stem.rstrip(' .') or 'video'
+    # Windows reserves these device names, including names with extensions.
+    if re.match(r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)',stem,re.I):
+        stem='_'+stem
+    return stem[:180-len(suffix)]+suffix
 
 def http_args(req):
     ua=(req.get('user_agent') or CFG.get('NETWORK','user_agent',fallback='')).strip()
