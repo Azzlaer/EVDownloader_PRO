@@ -823,3 +823,20 @@ El usuario es responsable de respetar:
 **Google Chrome + Native Messaging + Python + FFmpeg**
 
 Una extensin avanzada para detectar, descargar, analizar y convertir contenido multimedia desde el navegador.
+
+## Pruebas de regresión
+
+Las pruebas no requieren instalar dependencias ni disponer de FFmpeg:
+
+```bash
+python -m unittest discover -s tests -v
+node --test tests/service_worker.test.js
+```
+
+Se comprueban los nombres de salida de ambas versiones del Native Host y la
+limpieza de peticiones y temporizadores del service worker. GitHub Actions ejecuta
+estas pruebas en Linux y Windows con Python 3.12 y Node.js 22.
+
+Los cambios en `native_host/host.py` y `native_host_full/host_runtime.py` requieren
+recompilar los ejecutables si utilizas la distribución EXE. El flujo de pruebas
+no regenera los binarios incluidos en el repositorio.

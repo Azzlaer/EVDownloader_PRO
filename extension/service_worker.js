@@ -110,7 +110,7 @@ function connectNative(){
   nativePort.onMessage.addListener(onNativeMessage);
   nativePort.onDisconnect.addListener(()=>{
     const err=chrome.runtime.lastError?.message||'Native Host desconectado';
-    for(const [,p] of pending)p.reject(new Error(err));
+    for(const [,p] of pending){clearTimeout(p.timer);p.reject(new Error(err));}
     pending.clear(); nativePort=null;
   });
   return nativePort;
@@ -118,7 +118,7 @@ function connectNative(){
 async function onNativeMessage(m){
   await stateReady;
   if(m.response_to&&pending.has(m.response_to)){
-    const p=pending.get(m.response_to);pending.delete(m.response_to);
+    const p=pending.get(m.response_to);pending.delete(m.response_to);clearTimeout(p.timer);
     m.ok===false?p.reject(new Error(m.error||'Error')):p.resolve(m);return;
   }
   if(m.event==='batch_complete'){
@@ -135,8 +135,12 @@ async function onNativeMessage(m){
 function nativeRequest(payload,timeout=20000){
   return new Promise((resolve,reject)=>{
     const port=connectNative(),id=String(requestSeq++);
-    pending.set(id,{resolve,reject});port.postMessage({...payload,request_id:id});
-    setTimeout(()=>{if(pending.has(id)){pending.delete(id);reject(new Error('Tiempo de espera agotado'));}},timeout);
+    const timer=setTimeout(()=>{
+      if(pending.has(id)){pending.delete(id);reject(new Error('Tiempo de espera agotado'));}
+    },timeout);
+    pending.set(id,{resolve,reject,timer});
+    try { port.postMessage({...payload,request_id:id}); }
+    catch(e){clearTimeout(timer);pending.delete(id);reject(e);}
   });
 }
 async function scanDom(tabId){try{const r=await chrome.tabs.sendMessage(tabId,{action:'scanVideoElements'});for(const x of(r?.items||[]))await addCandidate(tabId,{...x,source:'dom'});}catch(_){}}
