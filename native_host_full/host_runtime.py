@@ -352,7 +352,7 @@ def youtube_download_worker(jid, req, directory):
         with JOB_LOCK:
             JOBS[jid] = proc
         output_name = ''
-        progress_re = re.compile(r'\\[download\\]\\s+(\\d+(?:\\.\\d+)?)%')
+        progress_re = re.compile(r'\[download\]\s+(\d+(?:\.\d+)?)%')
         for line in proc.stdout:
             match = progress_re.search(line)
             if match:
