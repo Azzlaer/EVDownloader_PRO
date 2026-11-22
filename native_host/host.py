@@ -330,8 +330,67 @@ def open_output(req):
     else:subprocess.Popen(['xdg-open',str(d)])
     reply(req,message='Carpeta abierta.')
 
+
+# Optional YouTube provider. Does not affect legacy FFmpeg downloads.
+def youtube_inspect(req):
+    import youtube_provider
+    reply(req, video=youtube_provider.inspect(req.get('url', '')))
+
+def youtube_download_worker(jid, req, directory):
+    import youtube_provider
+    url = req.get('url', '')
+    quality = str(req.get('quality', 'best'))
+    output_format = str(req.get('format', 'mkv'))
+    try:
+        f, _, _, _ = get_paths()
+        command = youtube_provider.download_args(url, directory, quality, output_format,
+                                                  str(f.parent) if f.exists() else None)
+        send({'event':'started','job_id':jid,'filename':'YouTube','percent':0,'startedAt':int(time.time()*1000)})
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, encoding='utf-8', errors='replace',
+                                creationflags=creationflags(), bufsize=1)
+        with JOB_LOCK:
+            JOBS[jid] = proc
+        output_name = ''
+        progress_re = re.compile(r'\[download\]\s+(\d+(?:\.\d+)?)%')
+        for line in proc.stdout:
+            match = progress_re.search(line)
+            if match:
+                send({'event':'progress','job_id':jid,'filename':output_name or 'YouTube',
+                      'percent':float(match.group(1)), 'speed':'', 'eta':'--'})
+            if '[Merger] Merging formats into ' in line or '[ExtractAudio] Destination: ' in line:
+                output_name = line.split(': ', 1)[-1].strip().strip('"')
+        rc = proc.wait()
+        with JOB_LOCK:
+            JOBS.pop(jid, None)
+        if rc == 0:
+            send({'event':'complete','job_id':jid,'filename':output_name or 'YouTube',
+                  'output':output_name or str(directory),'percent':100})
+        elif rc in (-15,-9,255):
+            send({'event':'cancelled','job_id':jid,'filename':'YouTube'})
+        else:
+            send({'event':'error','job_id':jid,'filename':'YouTube',
+                  'error':'yt-dlp no pudo completar el trabajo. Verifica la fuente y las dependencias.'})
+    except Exception as exc:
+        with JOB_LOCK:
+            JOBS.pop(jid, None)
+        send({'event':'error','job_id':jid,'filename':'YouTube','error':str(exc)[:500]})
+
+def youtube_download(req):
+    import youtube_provider
+    youtube_provider.normalize_video_url(req.get('url', ''))
+    youtube_provider.download_args(req['url'], out_dir(), str(req.get('quality','best')),
+                                   str(req.get('format','mkv')))
+    if not youtube_provider.check_installed():
+        raise RuntimeError('Falta yt-dlp. Instálalo con: python -m pip install -U yt-dlp')
+    directory = out_dir()
+    directory.mkdir(parents=True, exist_ok=True)
+    jid = uuid.uuid4().hex[:12]
+    reply(req, job_id=jid, output=str(directory))
+    threading.Thread(target=youtube_download_worker, args=(jid, dict(req), directory), daemon=True).start()
+
 def dispatch(req):
-    c=req.get('command');fn={'ping':ping,'get_config':get_config,'set_config':set_config,'auto_detect':auto_detect,'probe':probe,'inspect_manifest':inspect_manifest,'preview':preview,'select_folder':select_folder,'batch_download':batch_download,'download':download,'cancel':cancel,'open_output':open_output}.get(c)
+    c=req.get('command');fn={'ping':ping,'get_config':get_config,'set_config':set_config,'auto_detect':auto_detect,'probe':probe,'inspect_manifest':inspect_manifest,'preview':preview,'select_folder':select_folder,'batch_download':batch_download,'download':download,'cancel':cancel,'open_output':open_output,'youtube_inspect':youtube_inspect,'youtube_download':youtube_download}.get(c)
     if not fn:raise ValueError(f'Comando desconocido: {c}')
     fn(req)
 

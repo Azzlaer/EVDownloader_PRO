@@ -1,7 +1,7 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Video MKV PRO</title><link rel="stylesheet" href="popup.css"></head><body>
 <header><div class="brand"><div class="logo">▶</div><div><h1>Video MKV PRO</h1><p>Chrome Media Detector · FFmpeg</p></div></div><button id="settings" class="icon">⚙️</button></header>
 <div class="hostline"><span id="hostDot" class="dot wait"></span><span id="hostText">Comprobando motor…</span><button id="refreshHost" class="link">↻</button></div>
-<nav><button class="tab active" data-tab="detect">🎬 Detector</button><button class="tab" data-tab="queue">📥 Cola <span id="queueCount" class="pill">0</span></button></nav>
+<nav><button class="tab active" data-tab="detect">🎬 Detector</button><button class="tab" data-tab="youtube">▶ YouTube</button><button class="tab" data-tab="queue">📥 Cola <span id="queueCount" class="pill">0</span></button></nav>
 <section id="detect" class="panel active">
  <div id="pageTitle" class="page-title"></div><div class="toolbar"><button id="detectBtn" class="primary">🔍 Detectar</button><button id="clearBtn">🧹</button></div>
  <div class="bulkbar"><button id="downloadAllBtn" class="bulk">📦 Descargar todos los videos detectados</button><div id="bulkFolder" class="bulk-folder">Carpeta: se solicitará al iniciar</div></div>
@@ -13,6 +13,20 @@
   <div class="grid2"><label>Grabación LIVE (min)<input id="liveMinutes" type="number" min="0" value="0" placeholder="0 = hasta cancelar"></label><label class="check"><input id="useSession" type="checkbox" checked> Usar cookies/sesión de Chrome</label></div>
   <div id="mediaInfo" class="media-info">Selecciona una fuente. HLS/DASH puede mostrar variantes.</div>
   <div class="buttons"><button id="analyzeBtn">📊 Analizar</button><button id="inspectBtn">📺 Calidades</button><button id="previewBtn">▶ Vista previa</button><button id="downloadBtn" class="primary wide">⬇ Iniciar</button></div>
+ </div>
+</section>
+<section id="youtube" class="panel">
+ <div class="card">
+  <h2 style="margin:0 0 8px;font-size:16px">YouTube · contenido autorizado</h2>
+  <p style="color:#92a6bc;font-size:11px">Analiza un video público propio o con permiso para descargarlo. No admite DRM, listas ni contenido restringido.</p>
+  <label>URL del video<input id="ytUrl" placeholder="https://www.youtube.com/watch?v=..." /></label>
+  <div class="buttons" style="margin-bottom:10px"><button id="ytCurrent">Usar pestaña actual</button><button id="ytAnalyze">🔎 Analizar video</button></div>
+  <div id="ytInfo" class="media-info">El título, canal y calidades aparecerán aquí.</div>
+  <div class="grid2">
+   <label>Calidad<select id="ytQuality"><option value="best">Mejor disponible</option><option value="2160">Hasta 4K</option><option value="1440">Hasta 1440p</option><option value="1080">Hasta 1080p</option><option value="720">Hasta 720p</option><option value="480">Hasta 480p</option><option value="360">Hasta 360p</option></select></label>
+   <label>Formato<select id="ytFormat"><option value="mkv">MKV</option><option value="mp4">MP4</option><option value="webm">WebM</option><option value="mp3">MP3 (audio)</option><option value="m4a">M4A (audio)</option><option value="flac">FLAC (audio)</option></select></label>
+  </div>
+  <button id="ytDownload" class="primary" style="width:100%">⬇ Descargar video autorizado</button>
  </div>
 </section>
 <section id="queue" class="panel"><div class="queue-head"><b>Descargas / conversiones</b><button id="clearFinished" class="link">Limpiar finalizados</button><button id="reloadJobs" class="link">Actualizar</button></div><div id="jobs" class="jobs"><div class="empty">No hay trabajos todavía.</div></div></section>
