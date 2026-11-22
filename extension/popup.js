@@ -56,3 +56,34 @@ document.addEventListener('DOMContentLoaded',async()=>{
  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');if(b.dataset.tab==='queue')jobs()});
  chrome.runtime.onMessage.addListener(m=>{if(m.event==='jobUpdate'||m.event==='batchUpdate')jobs()});await hostStatus();await detect();await jobs();
 });
+
+
+// Optional YouTube provider: uses the native host, not network interception.
+async function ytInspect() {
+ try {
+  status('Consultando formatos con yt-dlp…');
+  const response = await native({command:'youtube_inspect',url:$('ytUrl').value.trim()},90000);
+  const v = response.video || {};
+  $('ytInfo').textContent = [v.title, v.channel, v.duration ? 'Duración: '+Math.round(v.duration)+' s' : '',
+    (v.formats||[]).length+' formatos disponibles'].filter(Boolean).join(' · ');
+  status('Video analizado. Elige formato y calidad.');
+ } catch(e) {status(e.message,true);}
+}
+async function ytDownload() {
+ try {
+  status('Iniciando descarga autorizada…');
+  const response = await native({command:'youtube_download',url:$('ytUrl').value.trim(),
+   quality:$('ytQuality').value,format:$('ytFormat').value},30000);
+  status('Trabajo '+response.job_id+' iniciado.');
+  document.querySelector('[data-tab="queue"]').click();
+  await jobs();
+ } catch(e) {status(e.message,true);}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ $('ytCurrent').onclick=async()=>{
+  const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
+  $('ytUrl').value=tab?.url||'';
+ };
+ $('ytAnalyze').onclick=ytInspect;
+ $('ytDownload').onclick=ytDownload;
+});
